@@ -27,7 +27,6 @@ Proyek ini adalah RESTful API yang dibangun menggunakan **Express.js** dan **Pri
 - **Joi**: Library untuk validasi data.
 
 ## Instalasi
-
 1. **Clone repository**
    ```bash
    git clone https://github.com/username/repo-name.git
@@ -49,3 +48,11 @@ Proyek ini adalah RESTful API yang dibangun menggunakan **Express.js** dan **Pri
    ```bash
    npm start
   Server akan berjalan pada port 3000 secara default.
+
+## API - Docs
+1. Run the project:
+   ```docs
+   npm start
+3. open a browser and enter the following link:
+   ```docs
+   http://localhost:<your-port>/api-docs/
