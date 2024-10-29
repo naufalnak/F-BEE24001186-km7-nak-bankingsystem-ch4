@@ -1,17 +1,31 @@
 const express = require("express");
 const AccountController = require("../controllers/account");
-const { validateAccount } = require("../middlewares/validationMiddleware");
+const {
+  validateAccount,
+  validateDepositWithdraw,
+} = require("../middlewares/validationMiddleware");
+const AuthMiddleware = require("../middlewares/auth");
 
 const router = express.Router();
 
-router.post("/accounts", validateAccount, AccountController.createAccount);
 router.get("/accounts", AccountController.getAccounts);
 router.get("/accounts/:accountId", AccountController.getAccountById);
-router.put(
-  "/accounts/:accountId",
-  validateAccount,
-  AccountController.updateAccount
+router.get(
+  "/getAccountMiddleware",
+  AuthMiddleware.authenticate,
+  AccountController.getAccount
 );
-router.delete("/accounts/:accountId", AccountController.deleteAccount);
+
+router.post("/accounts", validateAccount, AccountController.createAccount);
+router.post(
+  "/accounts/:accountId/deposit",
+  validateDepositWithdraw,
+  AccountController.deposit
+);
+router.post(
+  "/accounts/:accountId/withdraw",
+  validateDepositWithdraw,
+  AccountController.withdraw
+);
 
 module.exports = router;

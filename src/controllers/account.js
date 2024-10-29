@@ -46,31 +46,16 @@ class AccountController {
     }
   }
 
-  static async updateAccount(req, res) {
-    const { accountId } = req.params;
-    const { bank_name, bank_account_number, balance } = req.body;
-
+  static async getAccount(req, res) {
     try {
-      const account = await prisma.bankAccount.update({
-        where: { account_id: Number(accountId) },
-        data: { bank_name, bank_account_number, balance },
+      const accounts = await prisma.bankAccount.findMany({
+        where: { user_id: req.user.user_id },
       });
-      res.json(account);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  }
 
-  static async deleteAccount(req, res) {
-    const { accountId } = req.params;
-
-    try {
-      await prisma.bankAccount.delete({
-        where: { account_id: Number(accountId) },
-      });
-      res.status(204).send();
+      res.status(200).json(accounts);
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      console.error(error);
+      res.status(500).json({ error: "Gagal mengambil akun bank" });
     }
   }
 
@@ -85,12 +70,20 @@ class AccountController {
           .json({ message: "Deposit amount must be positive" });
       }
 
-      const account = await prisma.bankAccount.update({
+      const account = await prisma.bankAccount.findUnique({
+        where: { account_id: parseInt(accountId) },
+      });
+
+      if (!account) {
+        return res.status(404).json({ message: "Account not found" });
+      }
+
+      const updatedAccount = await prisma.bankAccount.update({
         where: { account_id: parseInt(accountId) },
         data: { balance: { increment: amount } },
       });
 
-      res.status(200).json(account);
+      return res.status(200).json(updatedAccount);
     } catch (error) {
       next(error);
     }
