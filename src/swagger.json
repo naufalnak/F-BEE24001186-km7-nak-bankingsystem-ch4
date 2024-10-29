@@ -1,0 +1,962 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API Bank System",
+    "description": "API Bank System adalah sebuah antarmuka pemrograman aplikasi yang dirancang untuk mengelola dan memproses berbagai layanan perbankan secara efisien. API ini memungkinkan pengguna untuk melakukan transaksi seperti pengecekan saldo, transfer dana antar rekening, pembuatan akun baru, serta pengelolaan data nasabah. Dibangun dengan arsitektur yang fleksibel, API ini mendukung integrasi yang mudah dengan berbagai sistem eksternal, serta dilengkapi dengan fitur keamanan tingkat tinggi untuk menjaga kerahasiaan dan integritas data perbankan.\n\n API ini menggunakan metode standar HTTP seperti GET, POST, PUT, dan DELETE, dengan format respons berbasis JSON untuk memudahkan proses integrasi dan pemrosesan data.",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "email": "naufal.ndak@...."
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.11"
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "User",
+      "description": "Operations related to users and their profiles"
+    },
+    {
+      "name": "Account",
+      "description": "Operations related to managing bank accounts"
+    },
+    {
+      "name": "Transaction",
+      "description": "Operations related to transferring funds between accounts"
+    }
+  ],
+  "paths": {
+    "/users": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get all users",
+        "description": "Fetches a list of all users, including their profiles.",
+        "operationId": "getuser",
+        "responses": {
+          "200": {
+            "description": "List of users retrieved Successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input name"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["User"],
+        "summary": "Create user",
+        "description": "This can only be done by the logged in user.",
+        "operationId": "createuser",
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/example/user"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/example/user"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/example/user"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input name"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Login user",
+        "description": "Allows a user to log in with valid credentials.",
+        "operationId": "loginUser",
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/example/login"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/example/login"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/example/login"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/login"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/login"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input name"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/users/{userId}": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get user by id",
+        "description": "Retrieve user details by id.",
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "Id of the user to search",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get user by id Successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input name"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/accounts": {
+      "get": {
+        "tags": ["Account"],
+        "summary": "Get all account",
+        "description": "Fetches a list of all account, including their profiles.",
+        "operationId": "getuser",
+        "responses": {
+          "200": {
+            "description": "List of users retrieved Successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/account"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/account"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input name"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Account"],
+        "summary": "Add a new account to the transaction",
+        "description": "Add a new account to the transaction",
+        "operationId": "addaccount",
+        "requestBody": {
+          "description": "Create a new account in the transaction",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/example/account"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/schemas/account"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/account"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/account"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/account"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "422": {
+            "description": "Validation exception"
+          }
+        },
+        "security": [
+          {
+            "accounttransaction_auth": ["write:accounts", "read:accounts"]
+          }
+        ]
+      }
+    },
+    "/accounts/{accountId}": {
+      "get": {
+        "tags": ["Account"],
+        "summary": "Get account by id",
+        "description": "Returns a single account",
+        "operationId": "getaccountById",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "description": "ID of account to return",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/account"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/account"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "account not found"
+          }
+        },
+        "security": [
+          {
+            "api_key": []
+          },
+          {
+            "accounttransaction_auth": ["write:accounts", "read:accounts"]
+          }
+        ]
+      }
+    },
+    "/accounts/{accountId}/deposit": {
+      "post": {
+        "tags": ["Account"],
+        "summary": "Deposit account",
+        "description": "",
+        "operationId": "depositAccount",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "description": "ID of account that needs to be updated",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/example/depositwithdraw"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/example/depositwithdraw"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/example/depositwithdraw"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful deposit"
+          },
+          "400": {
+            "description": "Invalid input, such as negative deposit amount"
+          },
+          "404": {
+            "description": "Account not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/accounts/{accountId}/withdraw": {
+      "post": {
+        "tags": ["Account"],
+        "summary": "Withdraw account",
+        "description": "",
+        "operationId": "withdrawAccount",
+        "parameters": [
+          {
+            "name": "accountId",
+            "in": "path",
+            "description": "ID of account that needs to be updated",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/example/depositwithdraw"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/example/depositwithdraw"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/example/depositwithdraw"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful withdrawal"
+          },
+          "400": {
+            "description": "Invalid input, such as negative withdrawal amount or insufficient funds"
+          },
+          "404": {
+            "description": "Account not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/transactions": {
+      "get": {
+        "tags": ["Transaction"],
+        "summary": "Get all transaction",
+        "description": "Fetches a list of all transaction.",
+        "operationId": "get-transactions",
+        "responses": {
+          "200": {
+            "description": "List of users retrieved Successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/transaction"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input name"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Transaction"],
+        "summary": "Add a new transaction",
+        "description": "Add a new transaction",
+        "operationId": "add-transaction",
+        "requestBody": {
+          "description": "Create a new account transaction",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/example/transaction"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/example/transaction"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/example/transaction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Add Transaction",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/transaction"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "422": {
+            "description": "Validation exception"
+          }
+        }
+      }
+    },
+    "/transactions/{transactionId}": {
+      "get": {
+        "tags": ["Transaction"],
+        "summary": "Get transaction by id",
+        "description": "Returns a single pet",
+        "operationId": "transactionId",
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "path",
+            "description": "ID of transaction to return",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/transaction"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID transaction"
+          },
+          "404": {
+            "description": "Transaction not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "example": {
+      "login": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "user123"
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "user": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "user"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "user123"
+          },
+          "identity_type": {
+            "type": "string",
+            "example": "KTP"
+          },
+          "identity_number": {
+            "type": "string",
+            "example": "1234567890123456"
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "transaction": {
+        "type": "object",
+        "properties": {
+          "source_account_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the source account"
+          },
+          "destination_account_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID of the destination account"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "description": "The amount to transfer"
+          }
+        },
+        "xml": {
+          "name": "transaction"
+        }
+      },
+      "account": {
+        "type": "object",
+        "properties": {
+          "bank_name": {
+            "type": "string",
+            "example": "Bank XYZ",
+            "description": "Name of the bank"
+          },
+          "bank_account_number": {
+            "type": "string",
+            "example": "1234567890",
+            "description": "Bank account number"
+          },
+          "balance": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1000000,
+            "description": "Current balance in the account"
+          },
+          "user_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1,
+            "description": "ID of the user who owns the account"
+          }
+        },
+        "xml": {
+          "name": "account"
+        }
+      },
+      "depositwithdraw": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1000
+          }
+        }
+      }
+    },
+    "schemas": {
+      "login": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Login successful"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "user_id": {
+                "type": "integer",
+                "example": 7
+              },
+              "name": {
+                "type": "string",
+                "example": "user"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "user@example.com"
+              },
+              "password": {
+                "type": "string",
+                "example": "$2b$10$qVWivwZ5G..1p0po90kl5OdMbUGsWmTgIwdm1h.02ue7z8ers9WCu"
+              }
+            }
+          },
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsImlhdCI6MTczMDIwOTY0NywiZXhwIjoxNzMwMjEzMjQ3fQ.KjakAHBZZ9UmwPQATM1hbtkfWSyQfjA6PrHlGC97LIQ"
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "user": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "user"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "user123"
+          },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "identity_type": {
+                "type": "string",
+                "example": "KTP"
+              },
+              "identity_number": {
+                "type": "string",
+                "example": "1234567890123456"
+              }
+            }
+          }
+        },
+        "xml": {
+          "name": "user"
+        }
+      },
+      "transaction": {
+        "type": "object",
+        "properties": {
+          "transaction_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1
+          },
+          "amount": {
+            "type": "integer",
+            "format": "int64",
+            "example": 500000,
+            "description": "Amount of money transferred"
+          },
+          "source_account_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1,
+            "description": "ID of the source bank account"
+          },
+          "destination_account_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 2,
+            "description": "ID of the destination bank account"
+          },
+          "sourceAccount": {
+            "type": "object",
+            "properties": {
+              "account_id": {
+                "type": "integer",
+                "example": 1
+              },
+              "bank_name": {
+                "type": "string",
+                "example": "Bank ABC"
+              },
+              "bank_account_number": {
+                "type": "string",
+                "example": "1234567890"
+              }
+            },
+            "description": "Details of the source account"
+          },
+          "destinationAccount": {
+            "type": "object",
+            "properties": {
+              "account_id": {
+                "type": "integer",
+                "example": 2
+              },
+              "bank_name": {
+                "type": "string",
+                "example": "Bank XYZ"
+              },
+              "bank_account_number": {
+                "type": "string",
+                "example": "0987654321"
+              }
+            },
+            "description": "Details of the destination account"
+          }
+        },
+        "xml": {
+          "name": "transaction"
+        }
+      },
+      "account": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "integer",
+            "example": 6
+          },
+          "bank_name": {
+            "type": "string",
+            "example": "Bank XYZ",
+            "description": "Name of the bank"
+          },
+          "bank_account_number": {
+            "type": "string",
+            "example": "1234567890",
+            "description": "Bank account number"
+          },
+          "balance": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1000000,
+            "description": "Current balance in the account"
+          },
+          "user_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1,
+            "description": "ID of the user who owns the account"
+          }
+        },
+        "xml": {
+          "name": "account"
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "type": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "xml": {
+          "name": "##default"
+        }
+      }
+    },
+    "requestBodies": {
+      "account": {
+        "description": "account object that needs to be added to the transaction",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/account"
+            }
+          },
+          "application/xml": {
+            "schema": {
+              "$ref": "#/components/schemas/account"
+            }
+          }
+        }
+      },
+      "UserArray": {
+        "description": "List of user object",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "accounttransaction_auth": {
+        "type": "oauth2",
+        "flows": {
+          "implicit": {
+            "authorizationUrl": "https://accounttransaction3.swagger.io/oauth/authorize",
+            "scopes": {
+              "write:accounts": "modify accounts in your account",
+              "read:accounts": "read your accounts"
+            }
+          }
+        }
+      },
+      "api_key": {
+        "type": "apiKey",
+        "name": "api_key",
+        "in": "header"
+      }
+    }
+  },
+  "schema": {
+    "schemas": {}
+  }
+}

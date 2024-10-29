@@ -64,10 +64,10 @@ class TransactionController {
   }
 
   static async getTransactionById(req, res, next) {
+    const { transactionId } = req.params;
     try {
-      const { transactionId } = req.params;
       const transaction = await prisma.transaction.findUnique({
-        where: { transaction_id: parseInt(transactionId) },
+        where: { transaction_id: Number(transactionId) },
         include: {
           sourceAccount: true,
           destinationAccount: true,
@@ -81,38 +81,6 @@ class TransactionController {
       res.status(200).json(transaction);
     } catch (error) {
       next(error);
-    }
-  }
-
-  static async updateTransaction(req, res) {
-    const { transactionId } = req.params;
-    const { source_account_id, destination_account_id, amount } = req.body;
-
-    try {
-      const transaction = await prisma.transaction.update({
-        where: { transaction_id: Number(transactionId) },
-        data: {
-          source_account_id,
-          destination_account_id,
-          amount,
-        },
-      });
-      res.status(200).json(transaction);
-    } catch (error) {
-      res.status(500).json({ error: "Error updating transaction" });
-    }
-  }
-
-  static async deleteTransaction(req, res) {
-    const { transactionId } = req.params;
-
-    try {
-      await prisma.transaction.delete({
-        where: { transaction_id: Number(transactionId) },
-      });
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ error: "Error deleting transaction" });
     }
   }
 }
