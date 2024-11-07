@@ -9,7 +9,7 @@ export default [
       sourceType: "commonjs",
       globals: {
         ...globals.browser,
-        jest: "readonly",
+        ...globals.jest,
       },
     },
   },
