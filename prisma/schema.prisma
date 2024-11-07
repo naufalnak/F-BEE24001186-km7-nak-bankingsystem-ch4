@@ -23,11 +23,12 @@ model User {
 }
 
 model Profile {
-  id             Int    @id @default(autoincrement())
-  identity_type  String
+  id              Int       @id @default(autoincrement())
+  identity_type   String
   identity_number String
-  user_id        Int     @unique 
-  user           User    @relation(fields: [user_id], references: [user_id])
+  image_profile   String?   @map("image_profile") @db.VarChar(255)
+  user_id         Int       @unique 
+  user            User      @relation(fields: [user_id], references: [user_id])
 }
 
 model BankAccount {
