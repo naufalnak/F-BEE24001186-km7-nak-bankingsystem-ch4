@@ -12,6 +12,9 @@ export default [
         ...globals.jest,
       },
     },
+    rules: {
+      "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
   },
   pluginJs.configs.recommended,
 ];
