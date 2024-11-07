@@ -1,7 +1,8 @@
+const { describe, it, expect, beforeEach, jest } = require("@jest/globals");
 const request = require("supertest");
 const express = require("express");
 const AccountController = require("../account");
-const AuthMiddleware = require("../../middlewares/auth");
+// const AuthMiddleware = require("../../middlewares/auth");
 const prisma = require("../../config/prisma");
 const errorHandler = require("../../middlewares/errorHandler");
 

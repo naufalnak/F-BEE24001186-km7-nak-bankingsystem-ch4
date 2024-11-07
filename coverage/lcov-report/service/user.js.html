@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for controllers/transaction.js</title>
+    <title>Code coverage report for service/user.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,7 +19,7 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">controllers</a> transaction.js</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">service</a> user.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>7/7</span>
+                <span class='fraction'>4/4</span>
             </div>
         
             
@@ -106,6 +106,21 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -113,14 +128,8 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -129,57 +138,48 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const TransactionService = require("../services/transaction");
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const prisma = require("../config/prisma");
+const bcrypt = require("bcrypt");
 &nbsp;
-class TransactionController {
-  static async createTransaction(req, res, next) {
-    try {
-      const transaction = await TransactionService.createTransaction(req.body);
-      return res.status(201).json(transaction);
-    } catch (error) {
-      next(error);
-    }
+class User {
+  static async createUser(data) {
+    const { name, email, password, identity_type, identity_number } = data;
+    const hashedPassword = await bcrypt.hash(password, 10);
+&nbsp;
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        profile: {
+          create: {
+            identity_type,
+            identity_number,
+          },
+        },
+      },
+    });
+    return user;
   }
 &nbsp;
-  static async getTransactions(req, res, next) {
-    try {
-      const transactions = await TransactionService.getTransactions();
-      res.status(200).json(transactions);
-    } catch (error) {
-      next(error);
-    }
+  static async getUsers() {
+    return await prisma.user.findMany({
+      include: { profile: true },
+    });
   }
 &nbsp;
-  static async getTransactionById(req, res, next) {
-    const { transactionId } = req.params;
-    try {
-      const transaction = await TransactionService.getTransactionById(
-        transactionId
-      );
-&nbsp;
-      if (!transaction) {
-        return res.status(404).json({ message: "Transaction not found" });
-      }
-      res.status(200).json(transaction);
-    } catch (error) {
-      next(error);
-    }
+  static async getUserById(userId) {
+    return await prisma.user.findUnique({
+      where: { user_id: Number(userId) },
+      include: { profile: true },
+    });
   }
 }
 &nbsp;
-module.exports = TransactionController;
+module.exports = User;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -187,7 +187,7 @@ module.exports = TransactionController;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-11-06T13:24:22.530Z
+                at 2024-10-31T12:46:00.577Z
             </div>
         <script src="../prettify.js"></script>
         <script>

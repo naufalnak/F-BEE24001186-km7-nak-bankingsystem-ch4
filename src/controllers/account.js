@@ -1,19 +1,15 @@
-const prisma = require("../config/prisma");
+const accountService = require("../services/account");
 
 class AccountController {
   static async createAccount(req, res, next) {
     try {
       const { user_id, bank_name, bank_account_number, balance } = req.body;
-
-      const account = await prisma.bankAccount.create({
-        data: {
-          user_id,
-          bank_name,
-          bank_account_number,
-          balance,
-        },
+      const account = await accountService.createAccount({
+        user_id,
+        bank_name,
+        bank_account_number,
+        balance,
       });
-
       return res.status(201).json(account);
     } catch (error) {
       next(error);
@@ -22,7 +18,7 @@ class AccountController {
 
   static async getAccounts(req, res, next) {
     try {
-      const accounts = await prisma.bankAccount.findMany();
+      const accounts = await accountService.getAllAccounts(); // Menggunakan getAllAccounts untuk mengambil semua akun
       res.status(200).json(accounts);
     } catch (error) {
       next(error);
@@ -32,9 +28,7 @@ class AccountController {
   static async getAccountById(req, res, next) {
     try {
       const { accountId } = req.params;
-      const account = await prisma.bankAccount.findUnique({
-        where: { account_id: parseInt(accountId) },
-      });
+      const account = await accountService.getAccountById(accountId); // Menggunakan getAccountById
 
       if (!account) {
         return res.status(404).json({ message: "Account not found" });
@@ -46,12 +40,11 @@ class AccountController {
     }
   }
 
-  static async getAccount(req, res) {
+  static async getAccountMiddlewareAuth(req, res) {
     try {
-      const accounts = await prisma.bankAccount.findMany({
-        where: { user_id: req.user.user_id },
-      });
-
+      const accounts = await accountService.getAccountsByUserId(
+        req.user.user_id
+      );
       res.status(200).json(accounts);
     } catch (error) {
       console.error(error);
@@ -70,19 +63,13 @@ class AccountController {
           .json({ message: "Deposit amount must be positive" });
       }
 
-      const account = await prisma.bankAccount.findUnique({
-        where: { account_id: parseInt(accountId) },
-      });
+      const account = await accountService.getAccountById(accountId);
 
       if (!account) {
         return res.status(404).json({ message: "Account not found" });
       }
 
-      const updatedAccount = await prisma.bankAccount.update({
-        where: { account_id: parseInt(accountId) },
-        data: { balance: { increment: amount } },
-      });
-
+      const updatedAccount = await accountService.deposit(accountId, amount);
       return res.status(200).json(updatedAccount);
     } catch (error) {
       next(error);
@@ -100,9 +87,7 @@ class AccountController {
           .json({ message: "Withdrawal amount must be positive" });
       }
 
-      const account = await prisma.bankAccount.findUnique({
-        where: { account_id: parseInt(accountId) },
-      });
+      const account = await accountService.getAccountById(accountId);
 
       if (!account) {
         return res.status(404).json({ message: "Account not found" });
@@ -114,11 +99,7 @@ class AccountController {
           .json({ message: "Insufficient balance for withdrawal" });
       }
 
-      const updatedAccount = await prisma.bankAccount.update({
-        where: { account_id: parseInt(accountId) },
-        data: { balance: { decrement: amount } },
-      });
-
+      const updatedAccount = await accountService.withdraw(accountId, amount);
       res.status(200).json(updatedAccount);
     } catch (error) {
       next(error);

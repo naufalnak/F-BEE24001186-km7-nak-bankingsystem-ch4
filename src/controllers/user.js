@@ -1,24 +1,9 @@
-const prisma = require("../config/prisma");
-const bcrypt = require("bcrypt");
+const UserService = require("../services/user");
 
 class UserController {
   static async createUser(req, res, next) {
-    const { name, email, password, identity_type, identity_number } = req.body;
     try {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-          profile: {
-            create: {
-              identity_type,
-              identity_number,
-            },
-          },
-        },
-      });
+      const user = await UserService.createUser(req.body);
       res.status(201).json({ message: "User registered", user: user });
     } catch (error) {
       next(error);
@@ -27,9 +12,7 @@ class UserController {
 
   static async getUsers(req, res, next) {
     try {
-      const users = await prisma.user.findMany({
-        include: { profile: true },
-      });
+      const users = await UserService.getUsers();
       res.json(users);
     } catch (error) {
       next(error);
@@ -39,16 +22,35 @@ class UserController {
   static async getUserById(req, res, next) {
     const { userId } = req.params;
     try {
-      const user = await prisma.user.findUnique({
-        where: { user_id: Number(userId) },
-        include: { profile: true },
-      });
+      const user = await UserService.getUserById(userId);
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       res.json(user);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async uploadImage(req, res, next) {
+    const { userId } = req.params;
+    const image = req.file ? req.file.path : null;
+
+    if (!image) {
+      return res
+        .status(400)
+        .json({ message: "No image provided or upload failed" });
+    }
+
+    try {
+      const user = await UserService.uploadImage(userId, image);
+
+      res.json({
+        message: "User image updated successfully",
+        data: user,
+      });
     } catch (error) {
       next(error);
     }

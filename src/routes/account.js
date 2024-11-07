@@ -13,7 +13,7 @@ router.get("/accounts/:accountId", AccountController.getAccountById);
 router.get(
   "/getAccountMiddleware",
   AuthMiddleware.authenticate,
-  AccountController.getAccount
+  AccountController.getAccountMiddlewareAuth
 );
 
 router.post("/accounts", validateAccount, AccountController.createAccount);
