@@ -1,4 +1,5 @@
 var ImageKit = require("imagekit");
+const process = require("process");
 
 const { IMAGEKIT_PUBLIC_KEY, IMAGEKIT_SECRET_KEY, IMAGEKIT_URL_ENDPOINT } =
   process.env;

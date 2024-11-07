@@ -8,6 +8,7 @@ const auth = require("./routes/auth");
 const mediaRouter = require("./routes/media.routers");
 const errorHandler = require("./middlewares/errorHandler");
 const dotenv = require("dotenv");
+const process = require("process");
 
 const app = express();
 dotenv.config();
