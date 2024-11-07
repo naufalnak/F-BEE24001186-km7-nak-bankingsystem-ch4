@@ -1,26 +1,16 @@
-# .github/workflows/cd.yml
-# --> (build) --> (deploy)--> finish
-# --------------------------------------
-# build: 
-# -> checkout code (✅)
-# -> install dependencies (✅)
-# -> run tests (✅)
-# -> generate coverage report (✅)
-# -> upload coverage to codecov (✅)
-# --------------------------------------
-# deploy:
-# -> checkout code (✅)
-# -> deploy using ssh (✅)
+name: Main CI
 
-name: Node.js CI/CD
-
-on: 
+on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   lint:
-    name: Lint Code
+    name: EsLint⛓️‍💥
     runs-on: ubuntu-latest
 
     steps:
@@ -39,17 +29,17 @@ jobs:
         run: npx eslint .
 
   test:
-    name: Run Tests
+    name: Jest🧪
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm install
@@ -58,12 +48,3 @@ jobs:
         run: npm test
 
          
-         
-# HOST: 17.154.234.12 (IP address atau URL)
-# USERNAME: binar
-# SSH-KEY: /home/binar/.ssh/id_rsa
-# Login SSH manual : ssh -i /home/binar/.ssh/id_rsa binar@17.154.234.12 -p 22 
-
-# Sebelumnya sudah install node, pm2 di server
-# Tahap awal, lakukan pm2 start server.js --name app
-# Bakal muncul list server (pm2 list) dan muncul server app
