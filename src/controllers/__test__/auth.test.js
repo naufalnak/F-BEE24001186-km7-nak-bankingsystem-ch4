@@ -64,7 +64,7 @@ describe("Auth Controller", () => {
     expect(jwt.sign).toHaveBeenCalledWith(
       { userId: mockUser.user_id },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: process.env.JWT_EXPIRES_IN }
     );
   });
 
