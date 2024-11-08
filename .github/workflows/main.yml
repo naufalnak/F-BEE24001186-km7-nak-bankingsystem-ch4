@@ -10,7 +10,7 @@ on:
 
 jobs:
   lint:
-    name: EsLint⛓️‍💥
+    name: EsLint ⛓️‍💥
     runs-on: ubuntu-latest
 
     steps:
@@ -29,7 +29,7 @@ jobs:
         run: npx eslint .
 
   test:
-    name: Jest🧪
+    name: Jest 🧪
     runs-on: ubuntu-latest
 
     steps:
@@ -47,4 +47,15 @@ jobs:
       - name: Run tests
         run: npm test
 
-         
+
+  coverage:
+    name: Code Coverage 📔
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
