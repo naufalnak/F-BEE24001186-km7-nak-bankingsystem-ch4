@@ -11,7 +11,7 @@ const {
 // // router.post("/videos", storage.image.single("video"), storageVideo);
 // // router.post("/files", storage.image.single("file"), storageFile);
 
-router.post("/imagekit/:userId", uploadImage, imagekitUpload);
+router.put("/users/:userId/image", uploadImage, imagekitUpload);
 
 // router.post("/imagekit/:userId", multer.single("image"), imagekitUpload);
 
