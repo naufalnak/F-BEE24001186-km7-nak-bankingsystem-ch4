@@ -223,8 +223,8 @@
         }
       }
     },
-    "/imagekit/{userId}": {
-      "post": {
+    "/users/{userId}/image": {
+      "put": {
         "tags": ["User"],
         "summary": "Upload user profile image",
         "description": "Upload user profile image by id.",
