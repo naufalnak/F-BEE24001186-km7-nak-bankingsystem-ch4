@@ -5,6 +5,10 @@ const prisma = require("../../config/prisma");
 const bcrypt = require("bcrypt");
 const Auth = require("../auth");
 const errorHandler = require("../../middlewares/errorHandler");
+const dotenv = require("dotenv");
+const process = require("process");
+
+dotenv.config();
 
 jest.mock("jsonwebtoken");
 jest.mock("../../config/prisma", () => ({
@@ -59,7 +63,7 @@ describe("Auth Controller", () => {
     expect(bcrypt.compare).toHaveBeenCalledWith("password", mockUser.password);
     expect(jwt.sign).toHaveBeenCalledWith(
       { userId: mockUser.user_id },
-      "your_jwt_secret",
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
   });
