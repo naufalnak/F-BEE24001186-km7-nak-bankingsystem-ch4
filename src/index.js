@@ -6,6 +6,7 @@ const account = require("./routes/account");
 const transaction = require("./routes/transaction");
 const auth = require("./routes/auth");
 const mediaRouter = require("./routes/media.routers");
+const home = require("./routes/home");
 const errorHandler = require("./middlewares/errorHandler");
 const dotenv = require("dotenv");
 const process = require("process");
@@ -17,6 +18,7 @@ const PORT = process.env.PORT;
 app.use(express.json());
 
 // Use the API routes
+app.use("/", home);
 app.use("/api/v1", user);
 app.use("/api/v1", account);
 app.use("/api/v1", transaction);
