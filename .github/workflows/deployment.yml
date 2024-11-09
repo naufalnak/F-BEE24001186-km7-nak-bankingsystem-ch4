@@ -25,4 +25,4 @@ jobs:
       # Step 3:  deploy on EC2, Install dependencies, and restart the app
       - name: Install Node.js dependencies
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "source ~/.nvm/nvm.sh && cd BreadcrumbsF-BEE24001186-km7-nak-bankingsystem-ch4 && git pull origin main && npm install && npx prisma generate && pm2 restart my-app"
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} "source ~/.nvm/nvm.sh && cd F-BEE24001186-km7-nak-bankingsystem-ch4 && git pull origin main && npm install && npx prisma generate && pm2 restart my-app"
