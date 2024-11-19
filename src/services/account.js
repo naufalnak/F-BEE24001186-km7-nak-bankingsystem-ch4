@@ -1,34 +1,34 @@
 const prisma = require("../config/prisma");
 
 class Account {
-  async createAccount(data) {
+  static async createAccount(data) {
     return await prisma.bankAccount.create({ data });
   }
 
-  async getAllAccounts() {
+  static async getAllAccounts() {
     return await prisma.bankAccount.findMany();
   }
 
-  async getAccountById(accountId) {
+  static async getAccountById(accountId) {
     return await prisma.bankAccount.findUnique({
       where: { account_id: parseInt(accountId) },
     });
   }
 
-  async getAccountsByUserId(userId) {
+  static async getAccountsByUserId(userId) {
     return await prisma.bankAccount.findMany({
       where: { user_id: userId },
     });
   }
 
-  async deposit(accountId, amount) {
+  static async deposit(accountId, amount) {
     return await prisma.bankAccount.update({
       where: { account_id: parseInt(accountId) },
       data: { balance: { increment: amount } },
     });
   }
 
-  async withdraw(accountId, amount) {
+  static async withdraw(accountId, amount) {
     return await prisma.bankAccount.update({
       where: { account_id: parseInt(accountId) },
       data: { balance: { decrement: amount } },
@@ -36,4 +36,4 @@ class Account {
   }
 }
 
-module.exports = new Account();
+module.exports = Account;

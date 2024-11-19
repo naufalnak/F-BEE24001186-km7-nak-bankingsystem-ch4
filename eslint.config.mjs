@@ -10,10 +10,13 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.jest,
+        io: "readonly",
       },
     },
     rules: {
-      "no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+      "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }], // Abaikan variabel dengan nama diawali _
+      "no-undef": "warn", // Beri peringatan untuk variabel undefined
+      "no-console": "off",
     },
   },
   pluginJs.configs.recommended,

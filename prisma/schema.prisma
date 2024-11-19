@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,21 +8,21 @@ datasource db {
 }
 
 model User {
-  user_id    Int           @id @default(autoincrement())
-  name       String        
-  email      String        @unique
-  password   String
-  profile    Profile?
-  accounts   BankAccount[]
+  user_id  Int           @id @default(autoincrement())
+  name     String
+  email    String        @unique
+  password String
+  accounts BankAccount[]
+  profile  Profile?
 }
 
 model Profile {
-  id              Int       @id @default(autoincrement())
+  id              Int     @id @default(autoincrement())
   identity_type   String
   identity_number String
-  image_profile   String?   @map("image_profile") @db.VarChar(255)
-  user_id         Int       @unique 
-  user            User      @relation(fields: [user_id], references: [user_id])
+  user_id         Int     @unique
+  image_profile   String? @map("image_profile") @db.VarChar(255)
+  user            User    @relation(fields: [user_id], references: [user_id])
 }
 
 model BankAccount {
@@ -38,8 +32,8 @@ model BankAccount {
   balance              Int
   user_id              Int
   user                 User          @relation(fields: [user_id], references: [user_id])
-  transactionsSent     Transaction[] @relation("sentTransactions")
   transactionsReceived Transaction[] @relation("receivedTransactions")
+  transactionsSent     Transaction[] @relation("sentTransactions")
 }
 
 model Transaction {
@@ -47,7 +41,6 @@ model Transaction {
   amount                 Int
   source_account_id      Int
   destination_account_id Int
-
-  sourceAccount          BankAccount @relation("sentTransactions", fields: [source_account_id], references: [account_id])
   destinationAccount     BankAccount @relation("receivedTransactions", fields: [destination_account_id], references: [account_id])
+  sourceAccount          BankAccount @relation("sentTransactions", fields: [source_account_id], references: [account_id])
 }

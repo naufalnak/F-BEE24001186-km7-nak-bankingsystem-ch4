@@ -1,5 +1,8 @@
 const errorHandler = (err, req, res, _next) => {
-  res.status(500).json({ message: err.message });
+  return res.status(500).json({
+    message: err.message,
+    errorId: res.sentry || "Unknown Error ID",
+  });
 };
 
 module.exports = errorHandler;

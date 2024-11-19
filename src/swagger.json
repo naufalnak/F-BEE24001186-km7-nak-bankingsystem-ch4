@@ -19,13 +19,17 @@
   },
   "servers": [
     {
-      "url": "http://ec2-3-1-85-79.ap-southeast-1.compute.amazonaws.com/api/v1"
+      "url": "http://localhost:3000/api/v1"
     }
   ],
   "tags": [
     {
       "name": "User",
       "description": "Operations related to users and their profiles"
+    },
+    {
+      "name": "Authentication",
+      "description": "Operations related to authentication"
     },
     {
       "name": "Account",
@@ -107,60 +111,6 @@
               "application/xml": {
                 "schema": {
                   "$ref": "#/components/schemas/user"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input name"
-          },
-          "404": {
-            "description": "User not found"
-          },
-          "500  ": {
-            "description": "Internal Server Error"
-          }
-        }
-      }
-    },
-    "/login": {
-      "post": {
-        "tags": ["User"],
-        "summary": "Login user",
-        "description": "Allows a user to log in with valid credentials.",
-        "operationId": "loginUser",
-        "requestBody": {
-          "description": "Created user object",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/example/login"
-              }
-            },
-            "application/xml": {
-              "schema": {
-                "$ref": "#/components/example/login"
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "$ref": "#/components/example/login"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/login"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/login"
                 }
               }
             }
@@ -267,6 +217,181 @@
           },
           "500": {
             "description": "Server error"
+          }
+        }
+      }
+    },
+    "/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login user",
+        "description": "Allows a user to log in with valid credentials.",
+        "operationId": "loginUser",
+        "requestBody": {
+          "description": "Created user object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/example/login"
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "$ref": "#/components/example/login"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/example/login"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/login"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/login"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input name"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/forgot-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Forgot Password",
+        "description": "Send an email with a link to reset your password.",
+        "operationId": "forgotPassword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The email was sent successfully."
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/reset-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Reset Password",
+        "description": "Reset the password using the token sent via email.",
+        "operationId": "reset-password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "example": "RESET_TOKEN"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "example": "newStrongPassword123"
+                  }
+                },
+                "required": ["token", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The password was successfully reset."
+          },
+          "400": {
+            "description": "The token is invalid or has expired."
+          },
+          "500  ": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/change-password": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Reset Password",
+        "description": "Change the password for a logged-in user.",
+        "operationId": "change-password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "oldPassword": {
+                    "type": "string",
+                    "example": "oldPassword123"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "example": "newStrongPassword456"
+                  }
+                },
+                "required": ["oldPassword", "newPassword"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The password was changed successfully."
+          },
+          "400": {
+            "description": "The old password is incorrect."
+          },
+          "500  ": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -1001,6 +1126,11 @@
         "type": "apiKey",
         "name": "api_key",
         "in": "header"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   },

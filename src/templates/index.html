@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Notifications</title>
+  </head>
+  <body>
+    <h1>WebSocket Notifications</h1>
+    <div id="notifications"></div>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+      const socket = io();
+
+      socket.on("registration_success", (data) => {
+        const notificationsDiv = document.getElementById("notifications");
+
+        const messageElement = document.createElement("p");
+        messageElement.textContent = `${data.message} for user: ${data.user.name} (${data.user.email})`;
+        notificationsDiv.appendChild(messageElement);
+      });
+
+      socket.on("password_reset", (data) => {
+        const notificationsDiv = document.getElementById("notifications");
+
+        const messageElement = document.createElement("p");
+        messageElement.textContent = `${data.message}`;
+        notificationsDiv.appendChild(messageElement);
+      });
+    </script>
+  </body>
+</html>
