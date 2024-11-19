@@ -17,7 +17,7 @@ jest.mock("bcrypt", () => ({
   hash: jest.fn(),
 }));
 
-jest.mock("../../services/email");
+jest.mock("../../config/nodemailer");
 
 jest.mock("../../middlewares/auth", () => ({
   generateToken: jest.fn(),
