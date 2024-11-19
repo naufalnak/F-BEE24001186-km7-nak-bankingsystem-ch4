@@ -1,30 +1,18 @@
 const request = require("supertest");
 const express = require("express");
-const AccountController = require("../account");
-// const AuthMiddleware = require("../../middlewares/auth");
-const prisma = require("../../config/prisma");
-const errorHandler = require("../../middlewares/errorHandler");
+const accountController = require("../../controllers/account");
+const accountService = require("../../services/account");
 
-jest.mock("../../config/prisma", () => ({
-  bankAccount: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
-}));
+jest.mock("../../services/account"); // Mock accountService
 
 const app = express();
-
 app.use(express.json());
 
-app.post("/accounts", AccountController.createAccount);
-app.get("/accounts", AccountController.getAccounts);
-app.get("/accounts/:accountId", AccountController.getAccountById);
-app.post("/accounts/:accountId/deposit", AccountController.deposit);
-app.post("/accounts/:accountId/withdraw", AccountController.withdraw);
-app.use(errorHandler);
+app.post("/accounts", accountController.createAccount);
+app.get("/accounts", accountController.getAccounts);
+app.get("/accounts/:accountId", accountController.getAccountById);
+app.post("/accounts/:accountId/deposit", accountController.deposit);
+app.post("/accounts/:accountId/withdraw", accountController.withdraw);
 
 describe("AccountControler", () => {
   beforeEach(() => {
@@ -33,250 +21,421 @@ describe("AccountControler", () => {
 
   // Done
   describe("POST /accounts", () => {
-    it("should create a new account", async () => {
-      const newAccount = {
-        bank_name: "Test Bank",
-        bank_account_number: "123456789",
-        balance: 500,
+    it("should create a new bank account and return it", async () => {
+      // Mock data
+      const mockRequestData = {
         user_id: 1,
-      };
-
-      prisma.bankAccount.create.mockResolvedValue(newAccount);
-
-      const response = await request(app).post("/accounts").send(newAccount);
-      expect(response.status).toBe(201);
-      expect(response.body).toEqual(newAccount);
-      expect(prisma.bankAccount.create).toHaveBeenCalledWith({
-        data: {
-          bank_name: "Test Bank",
-          bank_account_number: "123456789",
-          balance: 500,
-          user_id: 1,
-        },
-      });
-    });
-
-    it("should return error if prisma throws an error", async () => {
-      const mockError = new Error("Database error");
-
-      prisma.bankAccount.create.mockRejectedValue(mockError);
-
-      const response = await request(app).post("/accounts").send({
-        user_id: 1,
-        bank_name: "Bank A",
+        bank_name: "Bank ABC",
         bank_account_number: "1234567890",
         balance: 1000,
-      });
+      };
+      const mockResponseData = { id: 1, ...mockRequestData };
 
-      expect(response.status).toBe(500);
-      expect(response.body.message).toBe("Database error");
+      // Mock accountService response
+      accountService.createAccount.mockResolvedValue(mockResponseData);
+
+      // Make the request
+      const response = await request(app)
+        .post("/accounts")
+        .send(mockRequestData);
+
+      // Verify the response
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual(mockResponseData);
+      expect(accountService.createAccount).toHaveBeenCalledWith(
+        mockRequestData
+      );
+    });
+
+    it("should call next with an error if accountService throws an error", async () => {
+      // Mock accountService to throw an error
+      accountService.createAccount.mockRejectedValue(
+        new Error("Service error")
+      );
+
+      // Mock next function
+      const next = jest.fn();
+
+      // Call the controller directly with mock req, res, next
+      const req = { body: {} };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await accountController.createAccount(req, res, next);
+
+      // Verify next was called with the error
+      expect(next).toHaveBeenCalledWith(new Error("Service error"));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
   // Done
   describe("GET /accounts", () => {
-    it("should return all accounts", async () => {
-      const accounts = [
+    it("should return a list of all bank accounts", async () => {
+      // Mock data
+      const mockAccounts = [
         {
-          account_id: 1,
-          bank_name: "Test Bank",
-          bank_account_number: "123456789",
-          balance: 500,
+          id: 1,
+          user_id: 1,
+          bank_name: "Bank ABC",
+          bank_account_number: "1234567890",
+          balance: 1000,
+        },
+        {
+          id: 2,
+          user_id: 2,
+          bank_name: "Bank XYZ",
+          bank_account_number: "9876543210",
+          balance: 2000,
         },
       ];
 
-      prisma.bankAccount.findMany.mockResolvedValue(accounts);
+      // Mock accountService response
+      accountService.getAllAccounts.mockResolvedValue(mockAccounts);
 
+      // Make the request
       const response = await request(app).get("/accounts");
+
+      // Verify the response
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(accounts);
+      expect(response.body).toEqual(mockAccounts);
+      expect(accountService.getAllAccounts).toHaveBeenCalled();
     });
 
-    it("should handle errors and call next()", async () => {
-      const mockError = new Error("Database error");
+    it("should call next with an error if accountService throws an error", async () => {
+      // Mock accountService to throw an error
+      accountService.getAllAccounts.mockRejectedValue(
+        new Error("Service error")
+      );
 
-      prisma.bankAccount.findMany.mockRejectedValue(mockError);
+      // Mock next function
+      const next = jest.fn();
 
-      const response = await request(app).get("/accounts");
+      // Call the controller directly with mock req, res, next
+      const req = {};
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
 
-      expect(response.status).toBe(500);
-      expect(response.body.message).toBe("Database error");
+      await accountController.getAccounts(req, res, next);
+
+      // Verify next was called with the error
+      expect(next).toHaveBeenCalledWith(new Error("Service error"));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
-  //
+  // Done
   describe("GET /accounts/:accountId", () => {
-    it("should return account by id", async () => {
-      const account = {
-        account_id: 1,
-        bank_name: "Test Bank",
-        bank_account_number: "123456789",
-        balance: 500,
+    it("should return the account when it exists", async () => {
+      // Mock data
+      const accountId = 1;
+      const mockAccount = {
+        account_id: accountId,
+        user_id: 1,
+        bank_name: "Bank ABC",
+        bank_account_number: "1234567890",
+        balance: 1000,
       };
-      prisma.bankAccount.findUnique.mockResolvedValue(account);
-      const response = await request(app).get("/accounts/1");
+
+      // Mock accountService response
+      accountService.getAccountById.mockResolvedValue(mockAccount);
+
+      // Make the request
+      const response = await request(app).get(`/accounts/${accountId}`);
+
+      // Verify the response
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(account);
-    });
-
-    it("should return 404 if account not found", async () => {
-      prisma.bankAccount.findUnique.mockResolvedValue(null);
-
-      const response = await request(app).get("/accounts/1");
-
-      expect(response.status).toBe(404);
-      expect(response.body.message).toBe("Account not found");
-    });
-
-    it("should return 500 if Prisma throws an error", async () => {
-      prisma.bankAccount.findUnique.mockRejectedValue(
-        new Error("Database error")
+      expect(response.body).toEqual(mockAccount);
+      expect(accountService.getAccountById).toHaveBeenCalledWith(
+        accountId.toString()
       );
-      const response = await request(app).get("/accounts/1");
+    });
 
-      expect(response.status).toBe(500);
-      expect(response.body.message).toBe("Database error");
+    it("should return 404 if the account does not exist", async () => {
+      // Mock accountService to return null
+      accountService.getAccountById.mockResolvedValue(null);
+
+      // Make the request
+      const response = await request(app).get("/accounts/999"); // ID yang tidak ada
+
+      // Verify the response
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: "Account not found" });
+    });
+
+    it("should call next with an error if accountService throws an error", async () => {
+      // Mock accountService to throw an error
+      accountService.getAccountById.mockRejectedValue(
+        new Error("Service error")
+      );
+
+      // Mock next function
+      const next = jest.fn();
+
+      // Call the controller directly with mock req, res, next
+      const req = { params: { accountId: "1" } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await accountController.getAccountById(req, res, next);
+
+      // Verify next was called with the error
+      expect(next).toHaveBeenCalledWith(new Error("Service error"));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
+    });
+  });
+
+  // Done
+  describe("GET /accounts/:accountId", () => {
+    it("should return the account when it exists", async () => {
+      // Mock data
+      const accountId = 1;
+      const mockAccount = {
+        account_id: accountId,
+        user_id: 1,
+        bank_name: "Bank ABC",
+        bank_account_number: "1234567890",
+        balance: 1000,
+      };
+
+      // Mock accountService response
+      accountService.getAccountById.mockResolvedValue(mockAccount);
+
+      // Make the request
+      const response = await request(app).get(`/accounts/${accountId}`);
+
+      // Verify the response
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockAccount);
+      expect(accountService.getAccountById).toHaveBeenCalledWith(
+        accountId.toString()
+      );
+    });
+
+    it("should return 404 if the account does not exist", async () => {
+      // Mock accountService to return null
+      accountService.getAccountById.mockResolvedValue(null);
+
+      // Make the request
+      const response = await request(app).get("/accounts/999"); // ID yang tidak ada
+
+      // Verify the response
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({ message: "Account not found" });
+    });
+
+    it("should call next with an error if accountService throws an error", async () => {
+      // Mock accountService to throw an error
+      accountService.getAccountById.mockRejectedValue(
+        new Error("Service error")
+      );
+
+      // Mock next function
+      const next = jest.fn();
+
+      // Call the controller directly with mock req, res, next
+      const req = { params: { accountId: "1" } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await accountController.getAccountById(req, res, next);
+
+      // Verify next was called with the error
+      expect(next).toHaveBeenCalledWith(new Error("Service error"));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
   // Done
   describe("POST /accounts/:accountId/deposit", () => {
-    it("should deposit money into account", async () => {
-      const account = {
-        account_id: 1,
-        bank_name: "Test Bank",
-        bank_account_number: "123456789",
-        balance: 500,
+    it("should deposit amount to the account and return the updated account", async () => {
+      // Mock data
+      const accountId = 1;
+      const amount = 100;
+      const mockAccount = {
+        account_id: accountId,
+        user_id: 1,
+        bank_name: "Bank ABC",
+        bank_account_number: "1234567890",
+        balance: 1100,
       };
-      const updatedAccount = { ...account, balance: 700 };
-      prisma.bankAccount.findUnique.mockResolvedValue(account);
-      prisma.bankAccount.update.mockResolvedValue(updatedAccount);
 
+      // Mock accountService response
+      accountService.getAccountById.mockResolvedValue(mockAccount);
+      accountService.deposit.mockResolvedValue(mockAccount);
+
+      // Make the request
       const response = await request(app)
-        .post("/accounts/1/deposit")
-        .send({ amount: 200 });
+        .post(`/accounts/${accountId}/deposit`)
+        .send({ amount });
 
+      // Verify the response
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(updatedAccount);
+      expect(response.body).toEqual(mockAccount);
+      expect(accountService.getAccountById).toHaveBeenCalledWith(
+        accountId.toString()
+      );
+      expect(accountService.deposit).toHaveBeenCalledWith(
+        accountId.toString(),
+        amount
+      );
     });
 
-    it("should return error if deposit amount is negative", async () => {
+    it("should return 400 if deposit amount is not positive", async () => {
+      // Make the request
       const response = await request(app)
         .post("/accounts/1/deposit")
-        .send({ amount: -200 });
+        .send({ amount: -100 });
 
+      // Verify the response
       expect(response.status).toBe(400);
       expect(response.body).toEqual({
         message: "Deposit amount must be positive",
       });
     });
 
-    it("should return error if account not found", async () => {
-      prisma.bankAccount.findUnique.mockResolvedValue(null);
+    it("should return 404 if account is not found", async () => {
+      // Mock accountService to return null
+      accountService.getAccountById.mockResolvedValue(null);
 
+      // Make the request
       const response = await request(app)
-        .post("/accounts/1/deposit")
-        .send({ amount: 200 });
+        .post("/accounts/999/deposit")
+        .send({ amount: 100 });
 
+      // Verify the response
       expect(response.status).toBe(404);
-      expect(response.body).toEqual({
-        message: "Account not found",
-      });
+      expect(response.body).toEqual({ message: "Account not found" });
+      expect(accountService.getAccountById).toHaveBeenCalledWith("999");
     });
 
-    it("should return error if prisma throws an error", async () => {
-      prisma.bankAccount.findUnique.mockRejectedValue(
-        new Error("Database error")
+    it("should call next with an error if accountService throws an error", async () => {
+      // Mock accountService to throw an error
+      accountService.getAccountById.mockRejectedValue(
+        new Error("Service error")
       );
 
-      const response = await request(app)
-        .post("/accounts/1/deposit")
-        .send({ amount: 200 });
+      // Mock next function
+      const next = jest.fn();
 
-      expect(response.status).toBe(500);
-      expect(response.body).toEqual({
-        message: "Database error",
-      });
+      // Call the controller directly with mock req, res, next
+      const req = { params: { accountId: "1" }, body: { amount: 100 } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await accountController.deposit(req, res, next);
+
+      // Verify next was called with the error
+      expect(next).toHaveBeenCalledWith(new Error("Service error"));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
+  // Done
   describe("POST /accounts/:accountId/withdraw", () => {
-    it("should withdraw money from account", async () => {
-      const account = {
-        account_id: 1,
-        bank_name: "Test Bank",
-        bank_account_number: "123456789",
-        balance: 500,
+    it("should withdraw amount from the account and return the updated account", async () => {
+      // Mock data
+      const accountId = 1;
+      const amount = 100;
+      const mockAccount = {
+        account_id: accountId,
+        user_id: 1,
+        bank_name: "Bank ABC",
+        bank_account_number: "1234567890",
+        balance: 900,
       };
-      const updatedAccount = { ...account, balance: 300 };
-      prisma.bankAccount.findUnique.mockResolvedValue(account);
-      prisma.bankAccount.update.mockResolvedValue(updatedAccount);
 
+      // Mock accountService response
+      accountService.getAccountById.mockResolvedValue(mockAccount);
+      accountService.withdraw.mockResolvedValue(mockAccount);
+
+      // Make the request
       const response = await request(app)
-        .post("/accounts/1/withdraw")
-        .send({ amount: 200 });
+        .post(`/accounts/${accountId}/withdraw`)
+        .send({ amount });
 
+      // Verify the response
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(updatedAccount);
+      expect(response.body).toEqual(mockAccount);
+      expect(accountService.getAccountById).toHaveBeenCalledWith(
+        accountId.toString()
+      );
+      expect(accountService.withdraw).toHaveBeenCalledWith(
+        accountId.toString(),
+        amount
+      );
     });
 
-    it("should return error if withdrawal amount is negative", async () => {
+    it("should return 400 if withdrawal amount is not positive", async () => {
+      // Make the request
       const response = await request(app)
         .post("/accounts/1/withdraw")
-        .send({ amount: -200 });
+        .send({ amount: -100 });
 
+      // Verify the response
       expect(response.status).toBe(400);
       expect(response.body).toEqual({
         message: "Withdrawal amount must be positive",
       });
     });
 
-    it("should return error if account not found", async () => {
-      prisma.bankAccount.findUnique.mockResolvedValue(null);
+    it("should return 404 if account is not found", async () => {
+      // Mock accountService to return null
+      accountService.getAccountById.mockResolvedValue(null);
 
+      // Make the request
       const response = await request(app)
-        .post("/accounts/1/withdraw")
-        .send({ amount: 200 });
+        .post("/accounts/999/withdraw")
+        .send({ amount: 100 });
 
+      // Verify the response
       expect(response.status).toBe(404);
-      expect(response.body).toEqual({
-        message: "Account not found",
-      });
+      expect(response.body).toEqual({ message: "Account not found" });
+      expect(accountService.getAccountById).toHaveBeenCalledWith("999");
     });
 
-    it("should return error if insufficient funds", async () => {
-      const account = {
+    it("should return 400 if insufficient balance for withdrawal", async () => {
+      // Mock accountService to return an account with insufficient balance
+      const mockAccount = {
         account_id: 1,
-        bank_name: "Test Bank",
-        bank_account_number: "123456789",
-        balance: 500,
+        user_id: 1,
+        bank_name: "Bank ABC",
+        bank_account_number: "1234567890",
+        balance: 50, // Saldo tidak cukup untuk penarikan
       };
+      accountService.getAccountById.mockResolvedValue(mockAccount);
 
-      prisma.bankAccount.findUnique.mockResolvedValue(account);
-
+      // Make the request
       const response = await request(app)
         .post("/accounts/1/withdraw")
-        .send({ amount: 600 });
+        .send({ amount: 100 });
 
+      // Verify the response
       expect(response.status).toBe(400);
       expect(response.body).toEqual({
         message: "Insufficient balance for withdrawal",
       });
     });
 
-    it("should return error if prisma throws an error", async () => {
-      prisma.bankAccount.findUnique.mockRejectedValue(
-        new Error("Database error")
+    it("should call next with an error if accountService throws an error", async () => {
+      // Mock accountService to throw an error
+      accountService.getAccountById.mockRejectedValue(
+        new Error("Service error")
       );
 
-      const response = await request(app)
-        .post("/accounts/1/withdraw")
-        .send({ amount: 200 });
+      // Mock next function
+      const next = jest.fn();
 
-      expect(response.status).toBe(500);
-      expect(response.body).toEqual({
-        message: "Database error",
-      });
+      // Call the controller directly with mock req, res, next
+      const req = { params: { accountId: "1" }, body: { amount: 100 } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await accountController.withdraw(req, res, next);
+
+      // Verify next was called with the error
+      expect(next).toHaveBeenCalledWith(new Error("Service error"));
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 });

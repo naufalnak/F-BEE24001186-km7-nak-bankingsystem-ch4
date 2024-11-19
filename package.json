@@ -2,21 +2,29 @@
   "name": "f-bee24001186-km7-nak-bankingsystem-ch4",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "src/server.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest && npm run sentry:sourcemaps",
+    "dev": "nodemon src/server.js",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org naufal-andresya-kholish --project banking-system ./middlewares/instrument && sentry-cli sourcemaps upload --org naufal-andresya-kholish --project banking-system ./middlewares/instrument"
   },
   "author": "Naufal Andresya K",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.21.1",
+    "@sentry/cli": "^2.38.2",
+    "@sentry/node": "^8.38.0",
+    "@sentry/profiling-node": "^8.38.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "imagekit": "^5.2.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.16",
+    "socket.io": "^4.8.1",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {

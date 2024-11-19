@@ -3,8 +3,23 @@ const UserService = require("../services/user");
 class UserController {
   static async createUser(req, res, next) {
     try {
-      const user = await UserService.createUser(req.body);
-      res.status(201).json({ message: "User registered", user: user });
+      const { user, token } = await UserService.createUser(req.body);
+
+      if (res.locals.io) {
+        res.locals.io.emit("registration_success", {
+          message: "User registered successfully",
+          user: { user, token },
+        });
+      } else {
+        console.error("Socket.IO instance not found!");
+      }
+
+      // Response dengan user dan token
+      res.status(201).json({
+        message: "User registered",
+        user: user,
+        token: token,
+      });
     } catch (error) {
       next(error);
     }

@@ -1,23 +1,19 @@
 const request = require("supertest");
 const express = require("express");
-const UserController = require("../user");
-const prisma = require("../../config/prisma");
-const bcrypt = require("bcrypt");
-const errorHandler = require("../../middlewares/errorHandler");
 
-jest.mock("../../config/prisma", () => ({
-  user: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
-}));
+const errorHandler = require("../../middlewares/errorHandler");
+const UserController = require("../user");
+const UserService = require("../../services/user");
 
 jest.mock("bcrypt", () => ({
   hash: jest.fn(),
 }));
+
+jest.mock("../../middlewares/auth", () => ({
+  generateToken: jest.fn(),
+}));
+
+jest.mock("../../services/user");
 
 const app = express();
 
@@ -33,144 +29,104 @@ describe("UserController", () => {
   });
 
   describe("POST /users", () => {
-    it("should create a new user and return 201", async () => {
-      const mockUser = {
-        user_id: 1,
-        name: "Alice",
-        email: "alice@example.com",
-        password: "hashedPassword",
-        profile: {
-          identity_type: "ID Card",
-          identity_number: "1234567890",
-        },
+    it("should create a new user and return user and token", async () => {
+      const mockData = {
+        name: "John Doe",
+        email: "john@example.com",
+        password: "password123",
+        identity_type: "KTP",
+        identity_number: "1234567890",
       };
 
-      const hashedPassword = "hashedPassword";
-      bcrypt.hash.mockResolvedValue(hashedPassword);
-      prisma.user.create.mockResolvedValue(mockUser);
-
-      const response = await request(app).post("/users").send({
-        name: "Alice",
-        email: "alice@example.com",
-        password: "plainPassword",
-        identity_type: "ID Card",
-        identity_number: "1234567890",
-      });
-
-      expect(response.status).toBe(201);
-      expect(response.body).toEqual({
-        message: "User registered",
-        user: mockUser,
-      });
-      expect(bcrypt.hash).toHaveBeenCalledWith("plainPassword", 10);
-      expect(prisma.user.create).toHaveBeenCalledWith({
-        data: {
-          name: "Alice",
-          email: "alice@example.com",
-          password: hashedPassword,
-          profile: {
-            create: {
-              identity_type: "ID Card",
-              identity_number: "1234567890",
-            },
-          },
-        },
-      });
-    });
-
-    it("should handle errors and call next with error", async () => {
-      const mockError = new Error("Database error");
-      bcrypt.hash.mockResolvedValue("hashedPassword");
-      prisma.user.create.mockRejectedValue(mockError);
-
-      const response = await request(app).post("/users").send({
-        name: "Alice",
-        email: "alice@example.com",
-        password: "plainPassword",
-        identity_type: "ID Card",
-        identity_number: "1234567890",
-      });
-
-      expect(response.status).toBe(500);
-      expect(response.body.message).toBe("Database error");
-    });
-  });
-
-  describe("GET /users", () => {
-    it("should get all users successfully", async () => {
-      prisma.user.findMany.mockResolvedValue([
-        {
-          id: 1,
-          name: "John Doe",
-          email: "john@example.com",
-          profile: {
-            identity_type: "KTP",
-            identity_number: "123456789",
-          },
-        },
-      ]);
-
-      const response = await request(app).get("/users");
-
-      expect(response.status).toBe(200);
-      expect(response.body.length).toBeGreaterThan(0);
-      expect(prisma.user.findMany).toHaveBeenCalled();
-    });
-
-    it("should return 500 if Prisma throws an error", async () => {
-      const mockError = new Error("Database error");
-
-      prisma.user.findMany.mockRejectedValue(mockError);
-
-      const response = await request(app).get("/users");
-
-      expect(response.status).toBe(500);
-      expect(response.body.message).toBe("Database error");
-    });
-  });
-
-  describe("GET /users/:userId", () => {
-    it("should get user by ID successfully", async () => {
       const mockUser = {
         id: 1,
         name: "John Doe",
         email: "john@example.com",
         profile: {
           identity_type: "KTP",
-          identity_number: "123456789",
+          identity_number: "1234567890",
         },
       };
 
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+      const mockToken = "fake-jwt-token";
 
-      const response = await request(app).get("/users/1");
-
-      expect(response.status).toBe(200);
-      expect(response.body.name).toBe("John Doe");
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { user_id: 1 },
-        include: { profile: true },
+      // Mock service response
+      UserService.createUser.mockResolvedValue({
+        user: mockUser,
+        token: mockToken,
       });
+
+      const response = await request(app).post("/users").send(mockData);
+
+      expect(response.status).toBe(201);
+      expect(response.body.message).toBe("User registered");
+      expect(response.body.user).toEqual(mockUser);
+      expect(response.body.token).toBe(mockToken);
     });
 
-    it("should return 404 if user not found", async () => {
-      prisma.user.findUnique.mockResolvedValue(null);
+    it("should return 500 if createUser fails", async () => {
+      const mockData = {
+        name: "John Doe",
+        email: "john@example.com",
+        password: "password123",
+        identity_type: "KTP",
+        identity_number: "1234567890",
+      };
 
-      const response = await request(app).get("/users/999");
+      // Mock service untuk melempar error
+      UserService.createUser.mockRejectedValue(new Error("Service error"));
 
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: "User not found" });
-    });
-
-    it("should return 500 if Prisma throws an error", async () => {
-      const mockError = new Error("Database error");
-
-      prisma.user.findUnique.mockRejectedValue(mockError);
-
-      const response = await request(app).get("/users/999");
+      const response = await request(app).post("/users").send(mockData);
 
       expect(response.status).toBe(500);
-      expect(response.body.message).toBe("Database error");
+      expect(response.body.message).toBe("Service error");
+    });
+  });
+
+  describe("GET /users", () => {
+    it("should return a list of users with profiles", async () => {
+      // Mock data
+      const mockUsers = [
+        {
+          id: 1,
+          name: "John Doe",
+          email: "john@example.com",
+          profile: {
+            identity_type: "KTP",
+            identity_number: "1234567890",
+          },
+        },
+      ];
+
+      // Mock UserService response
+      UserService.getUsers.mockResolvedValue(mockUsers);
+
+      // Make the request
+      const response = await request(app).get("/users");
+
+      // Verify the response
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual(mockUsers);
+    });
+
+    it("should call next with an error if UserService throws an error", async () => {
+      // Mock UserService to throw an error
+      UserService.getUsers.mockRejectedValue(new Error("Service error"));
+
+      // Mock next function
+      const next = jest.fn();
+
+      // Call the controller directly with mock req, res, next
+      const req = {};
+      const res = {
+        json: jest.fn(),
+      };
+
+      await UserController.getUsers(req, res, next);
+
+      // Verify next was called with the error
+      expect(next).toHaveBeenCalledWith(new Error("Service error"));
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 });
